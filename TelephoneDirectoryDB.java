@@ -20,6 +20,20 @@ public class TelephoneDirectoryDB {
 
             System.out.println("Records inserted successfully!");
 
+            //Retrieve and Display Initial Directory
+            ResultSet rs = stmt.executeQuery("SELECT * FROM directory ORDER BY lastName, firstName");
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            System.out.println("\nTelephone Directory:");
+            while (rs.next()) {
+                for (int i = 1; i <= columnCount; i++) {
+                    System.out.print(metaData.getColumnName(i) + ": " + rs.getString(i) + "\t");
+                }
+                System.out.println();
+            }
+
+            rs.close();
             stmt.close();
             conn.close();
 
