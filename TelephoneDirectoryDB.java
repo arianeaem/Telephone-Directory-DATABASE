@@ -1,117 +1,131 @@
 import java.sql.*;
+import java.util.Scanner;
 
 public class TelephoneDirectoryDB {
     public static void main(String[] args) {
         String url = "jdbc:mysql://localhost:3306/telephonedb";
         String user = "root";
-        String password = "password mu"; // Palitan password
+        String password = ""; // Update to your actual MySQL password
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection conn = DriverManager.getConnection(url, user, password);
-            Statement stmt = conn.createStatement();
+            Scanner scanner = new Scanner(System.in);
 
-            stmt.executeUpdate("DELETE FROM directory");
+            // Display current directory
+            displayDirectory(conn);
 
-            stmt.executeUpdate("INSERT INTO directory VALUES ('Buan', 'Jana Sophia', 'R.', '123 Rizal Ave, Manila', '09171234567')");
-            stmt.executeUpdate("INSERT INTO directory VALUES ('Calaquian', 'Louise', 'D.', '456 Katipunan, Quezon City', '09281234567')");
-            stmt.executeUpdate("INSERT INTO directory VALUES ('Eval', 'Bradley', 'F.', '789 Taft Ave, Pasay', '09391234567')");
-            stmt.executeUpdate("INSERT INTO directory VALUES ('Gusto', 'Ariane Mae', 'M.', '22 C Sto. Nino, Manila', '09918739234')");
+            System.out.println("\nEnter update instruction (I for insert, D for delete):");
+            String input = scanner.nextLine().trim().toUpperCase();
 
-            System.out.println("Records inserted successfully!");
+            if (input.equals("I")) {
+                // INSERT
+                System.out.print("lastName:    ");
+                String lastName = scanner.nextLine().trim();
+                System.out.print("firstName:   ");
+                String firstName = scanner.nextLine().trim();
+                System.out.print("middle:      ");
+                String middle = scanner.nextLine().trim();
+                System.out.print("address:     ");
+                String address = scanner.nextLine().trim();
+                System.out.print("phoneNumber: ");
+                String phoneNumber = scanner.nextLine().trim();
 
-            //Retrieve and Display Initial Directory
-            ResultSet rs = stmt.executeQuery("SELECT * FROM directory ORDER BY lastName, firstName");
-            ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
+                try {
+                    String insertSQL = "INSERT INTO directory VALUES (?, ?, ?, ?, ?)";
+                    PreparedStatement pstmt = conn.prepareStatement(insertSQL);
+                    pstmt.setString(1, lastName);
+                    pstmt.setString(2, firstName);
+                    pstmt.setString(3, middle);
+                    pstmt.setString(4, address);
+                    pstmt.setString(5, phoneNumber);
 
-            System.out.println("\nTelephone Directory:");
-            while (rs.next()) {
-                System.out.println("lastName:    " + rs.getString("lastName"));
-                System.out.println("firstName:   " + rs.getString("firstName"));
-                System.out.println("middle:      " + rs.getString("middle"));
-                System.out.println("address:     " + rs.getString("address"));
-                System.out.println("phoneNumber: " + rs.getString("phoneNumber"));
-                System.out.println();
-            }
-
-            rs.close();
-            stmt.close();
-            conn.close();
-        } catch (SQLException e) {
-            System.out.println("SQL Error during setup or insertion:");
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            System.out.println("JDBC Driver not found.");
-            e.printStackTrace();
-        }
-
-        /**
-         * Handles user input for updating a telephone directory stored in a MySQL database.
-         * 
-         * @throws Exception if there is an error reading input or connecting to the database.
-         * @see java.sql.Connection
-         * @see java.sql.DriverManager
-         * @see java.sql.Statement
-         * @see java.sql.ResultSet
-         * @see java.util.Scanner
-         */
-        try {
-            java.util.Scanner scanner = new java.util.Scanner(System.in);
-            System.out.println("Enter update instruction (I for insert, D for delete):");
-            String input = scanner.nextLine();
-            String[] parts = input.split(",");
-            if (parts.length > 0) {
-                String op = parts[0].trim().toUpperCase();
-                if (op.equals("I")) {
-                    // Prompt for each field individually
-                    System.out.print("lastName:    ");
-                    String lastName = scanner.nextLine().trim();
-                    System.out.print("firstName:   ");
-                    String firstName = scanner.nextLine().trim();
-                    System.out.print("middle:     ");
-                    String middle = scanner.nextLine().trim();
-                    System.out.print("address:     ");
-                    String address = scanner.nextLine().trim();
-                    System.out.print("phoneNumber: ");
-                    String phoneNumber = scanner.nextLine().trim();
-                    try {
-                        Class.forName("com.mysql.cj.jdbc.Driver");
-                        Connection conn = DriverManager.getConnection(url, user, password);
-                        Statement stmt = conn.createStatement();
-                        String sql = String.format(
-                            "INSERT INTO directory VALUES ('%s', '%s', '%s', '%s', '%s')",
-                            lastName, firstName, middle, address, phoneNumber
-                        );
-                        stmt.executeUpdate(sql);
+                    int rowsInserted = pstmt.executeUpdate();
+                    if (rowsInserted > 0) {
                         System.out.println("Record inserted successfully!");
-                        // Display updated directory
-                        ResultSet rs = stmt.executeQuery("SELECT * FROM directory ORDER BY lastName, firstName");
-                        System.out.println("\nUpdated Telephone Directory:");
-                        while (rs.next()) {
-                            System.out.println("lastName:    " + rs.getString("lastName"));
-                            System.out.println("firstName:   " + rs.getString("firstName"));
-                            System.out.println("middle:     " + rs.getString("middle"));
-                            System.out.println("address:     " + rs.getString("address"));
-                            System.out.println("phoneNumber: " + rs.getString("phoneNumber"));
-                            System.out.println();
-                        }
-                        rs.close();
-                        stmt.close();
-                        conn.close();
-                    } catch (Exception ex) {
-                        System.out.println("Error during insertion:");
-                        ex.printStackTrace();
+                    } else {
+                        System.out.println("Insert failed.");
                     }
-                } else if (op.equals("D")) {
-                    System.out.println("wla pang deletion");
-                } else {
-                    System.out.println("Invalid input format.");
+
+                    pstmt.close();
+                } catch (SQLException ex) {
+                    System.out.println("Error inserting record:");
+                    ex.printStackTrace();
                 }
+
+            } else if (input.equals("D")) {
+                // DELETE
+                System.out.print("lastName:    ");
+                String lastName = scanner.nextLine().trim();
+                System.out.print("firstName:   ");
+                String firstName = scanner.nextLine().trim();
+                System.out.print("middle:      ");
+                String middle = scanner.nextLine().trim();
+                System.out.print("phoneNumber (optional, press enter to skip): ");
+                String phoneNumber = scanner.nextLine().trim();
+
+                String deleteSQL;
+                PreparedStatement pstmt;
+
+                if (!phoneNumber.isEmpty()) {
+                    deleteSQL = "DELETE FROM directory WHERE lastName = ? AND firstName = ? AND middle = ? AND phoneNumber = ?";
+                    pstmt = conn.prepareStatement(deleteSQL);
+                    pstmt.setString(1, lastName);
+                    pstmt.setString(2, firstName);
+                    pstmt.setString(3, middle);
+                    pstmt.setString(4, phoneNumber);
+                } else {
+                    deleteSQL = "DELETE FROM directory WHERE lastName = ? AND firstName = ? AND middle = ?";
+                    pstmt = conn.prepareStatement(deleteSQL);
+                    pstmt.setString(1, lastName);
+                    pstmt.setString(2, firstName);
+                    pstmt.setString(3, middle);
+                }
+
+                int rowsAffected = pstmt.executeUpdate();
+                if (rowsAffected > 0) {
+                    System.out.println("Record deleted successfully!");
+                } else {
+                    System.out.println("No matching record found.");
+                }
+
+                pstmt.close();
+            } else {
+                System.out.println("Invalid operation. Please enter only 'I' or 'D'.");
             }
-        } catch (Exception e) {
-            System.out.println("Error reading input:");
+
+            // Display updated directory
+            displayDirectory(conn);
+
+            conn.close();
+            scanner.close();
+
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void displayDirectory(Connection conn) throws SQLException {
+        System.out.println("\nTelephone Directory:");
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM directory ORDER BY lastName, firstName");
+
+        boolean hasRecords = false;
+        while (rs.next()) {
+            hasRecords = true;
+            System.out.println(
+                    rs.getString("lastName") + ", " +
+                            rs.getString("firstName") + " " +
+                            rs.getString("middle") + " | " +
+                            rs.getString("address") + " | " +
+                            rs.getString("phoneNumber"));
+        }
+
+        if (!hasRecords) {
+            System.out.println("No records found.");
+        }
+
+        rs.close();
+        stmt.close(); // Keep the connection open
     }
 }
