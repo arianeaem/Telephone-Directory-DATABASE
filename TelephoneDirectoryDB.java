@@ -20,15 +20,15 @@ public class TelephoneDirectoryDB {
 
             if (input.equals("I")) {
                 // INSERT
-                System.out.print("lastName:    ");
+                System.out.print("Last Name:    ");
                 String lastName = scanner.nextLine().trim();
-                System.out.print("firstName:   ");
+                System.out.print("First Name:   ");
                 String firstName = scanner.nextLine().trim();
-                System.out.print("middle:      ");
+                System.out.print("Middle Initial:      ");
                 String middle = scanner.nextLine().trim();
-                System.out.print("address:     ");
+                System.out.print("Address:     ");
                 String address = scanner.nextLine().trim();
-                System.out.print("phoneNumber: ");
+                System.out.print("Phone Number: ");
                 String phoneNumber = scanner.nextLine().trim();
 
                 try {
@@ -55,13 +55,13 @@ public class TelephoneDirectoryDB {
 
             } else if (input.equals("D")) {
                 // DELETE
-                System.out.print("lastName:    ");
+                System.out.print("Last Name:    ");
                 String lastName = scanner.nextLine().trim();
-                System.out.print("firstName:   ");
+                System.out.print("First Name:   ");
                 String firstName = scanner.nextLine().trim();
-                System.out.print("middle:      ");
+                System.out.print("Middle Initial:      ");
                 String middle = scanner.nextLine().trim();
-                System.out.print("phoneNumber (optional, press enter to skip): ");
+                System.out.print("Phone Number (optional, press enter to skip): ");
                 String phoneNumber = scanner.nextLine().trim();
 
                 String deleteSQL;
