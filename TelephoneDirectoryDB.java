@@ -1,7 +1,23 @@
 import java.sql.*;
 import java.util.Scanner;
 
+/**
+ * TelephoneDirectoryDB manages a simple telephone directory database.
+ * Allows users to insert and delete records via console input.
+ *
+ * @author BUAN, JANA SOPHIA R.
+ * @author CALAQUIAN, LOUISE JAVIER D.
+ * @author EVAL. BRADLEY JAMES F.
+ * @author GUSTO, ARIANE MAE B.
+ */
 public class TelephoneDirectoryDB {
+    /**
+     * Main entry point. Connects to the database and handles user operations.
+     *
+     * @param args Command-line arguments (not used)
+     * @throws SQLException if a database access error occurs
+     * @throws ClassNotFoundException if the JDBC driver is not found
+     */
     public static void main(String[] args) {
         String url = "jdbc:mysql://localhost:3306/telephonedb";
         String user = "root";
@@ -12,25 +28,27 @@ public class TelephoneDirectoryDB {
             Connection conn = DriverManager.getConnection(url, user, password);
             Scanner scanner = new Scanner(System.in);
 
-            // Display current directory
+            // Show current directory records
             displayDirectory(conn);
 
             System.out.println("\nEnter update instruction (I for insert, D for delete):");
             String input = scanner.nextLine().trim().toUpperCase();
 
             if (input.equals("I")) {
-                // INSERT
-                System.out.print("Last Name:    ");
+                // --- Insert Operation ---
+                // Prompt user for new record details
+                System.out.print("Last Name:        ");
                 String lastName = scanner.nextLine().trim();
-                System.out.print("First Name:   ");
+                System.out.print("First Name:       ");
                 String firstName = scanner.nextLine().trim();
-                System.out.print("Middle Initial:      ");
+                System.out.print("Middle Initial:   ");
                 String middle = scanner.nextLine().trim();
-                System.out.print("Address:     ");
+                System.out.print("Address:          ");
                 String address = scanner.nextLine().trim();
-                System.out.print("Phone Number: ");
+                System.out.print("Phone Number:     ");
                 String phoneNumber = scanner.nextLine().trim();
 
+                // Insert the new record into the database
                 try {
                     String insertSQL = "INSERT INTO directory VALUES (?, ?, ?, ?, ?)";
                     PreparedStatement pstmt = conn.prepareStatement(insertSQL);
@@ -46,7 +64,6 @@ public class TelephoneDirectoryDB {
                     } else {
                         System.out.println("Insert failed.");
                     }
-
                     pstmt.close();
                 } catch (SQLException ex) {
                     System.out.println("Error inserting record:");
@@ -54,7 +71,8 @@ public class TelephoneDirectoryDB {
                 }
 
             } else if (input.equals("D")) {
-                // DELETE
+                // --- Delete Operation ---
+                // Prompt user for record details to delete
                 System.out.print("Last Name:    ");
                 String lastName = scanner.nextLine().trim();
                 System.out.print("First Name:   ");
@@ -67,6 +85,7 @@ public class TelephoneDirectoryDB {
                 String deleteSQL;
                 PreparedStatement pstmt;
 
+                // Delete by full name and phone if provided, else by name only
                 if (!phoneNumber.isEmpty()) {
                     deleteSQL = "DELETE FROM directory WHERE lastName = ? AND firstName = ? AND middle = ? AND phoneNumber = ?";
                     pstmt = conn.prepareStatement(deleteSQL);
@@ -88,13 +107,12 @@ public class TelephoneDirectoryDB {
                 } else {
                     System.out.println("No matching record found.");
                 }
-
                 pstmt.close();
             } else {
                 System.out.println("Invalid operation. Please enter only 'I' or 'D'.");
             }
 
-            // Display updated directory
+            // Show updated directory records
             displayDirectory(conn);
 
             conn.close();
@@ -105,20 +123,33 @@ public class TelephoneDirectoryDB {
         }
     }
 
+    /**
+     * Displays all records in the telephone directory, formatted in columns.
+     *
+     * @param conn Active database connection
+     * @throws SQLException if a database access error occurs
+     */
     public static void displayDirectory(Connection conn) throws SQLException {
         System.out.println("\nTelephone Directory:");
+        System.out.printf("%-28s %-32s %-15s\n", "Name", "Address", "Telephone");
+        System.out.println("-------------------------------------------------------------------------------");
+        boolean hasRecords = false;
         Statement stmt = conn.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT * FROM directory ORDER BY lastName, firstName");
 
-        boolean hasRecords = false;
         while (rs.next()) {
             hasRecords = true;
-            System.out.println(
-                    rs.getString("lastName") + ", " +
-                            rs.getString("firstName") + " " +
-                            rs.getString("middle") + " | " +
-                            rs.getString("address") + " | " +
-                            rs.getString("phoneNumber"));
+            String middle = rs.getString("middle");
+            String middleFormatted = "";
+            if (middle != null && !middle.trim().isEmpty()) {
+                middleFormatted = " " + (middle.endsWith(".") ? middle : middle + ".");
+            }
+            String name = rs.getString("lastName") + ", " + rs.getString("firstName") + middleFormatted;
+            System.out.printf("%-28s %-32s %-15s\n",
+                name,
+                rs.getString("address"),
+                rs.getString("phoneNumber")
+            );
         }
 
         if (!hasRecords) {
